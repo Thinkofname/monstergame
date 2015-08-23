@@ -23,17 +23,13 @@ func (tileSolid) IsSolid() bool                    { return true }
 
 type tileSolidColor struct {
 	R, G, B int
-
-	colorCache html.Color
 }
 
 func (t *tileSolidColor) Draw(ctx *html.Context, x, y int) {
 	x *= tileSize
 	y *= tileSize
-	if t.colorCache == "" {
-		t.colorCache = html.NewRGBColor(t.R, t.G, t.B)
-	}
-	ctx.FillStyle = t.colorCache
+	color := html.NewRGBColor(t.R, t.G, t.B)
+	ctx.FillStyle = color
 	ctx.FillRect(x, y, tileSize, tileSize)
 }
 
@@ -45,33 +41,31 @@ func (*tileSolidColor) IsSolid() bool { return true }
 type tileDynamic struct {
 	OX, OY int
 
-	partsOk bool
-	Parts   [4]struct {
+	Solid bool
+
+	Parts [4]struct {
 		OX, OY int
 	}
 }
 
 func (t *tileDynamic) Draw(ctx *html.Context, x, y int) {
-	if !t.partsOk {
-		t.partsOk = true
-		top := GetTile(x, y-1).IsSolid()
-		left := GetTile(x-1, y).IsSolid()
-		topLeft := GetTile(x-1, y-1).IsSolid()
-		right := GetTile(x+1, y).IsSolid()
-		topRight := GetTile(x+1, y-1).IsSolid()
-		bottom := GetTile(x, y+1).IsSolid()
-		bottomLeft := GetTile(x-1, y+1).IsSolid()
-		bottomRight := GetTile(x+1, y+1).IsSolid()
+	top := t.Connects(GetTile(x, y-1))
+	left := t.Connects(GetTile(x-1, y))
+	topLeft := t.Connects(GetTile(x-1, y-1))
+	right := t.Connects(GetTile(x+1, y))
+	topRight := t.Connects(GetTile(x+1, y-1))
+	bottom := t.Connects(GetTile(x, y+1))
+	bottomLeft := t.Connects(GetTile(x-1, y+1))
+	bottomRight := t.Connects(GetTile(x+1, y+1))
 
-		// Part 0 - Top Left
-		t.computePart(0, top, left, topLeft, 0, 0)
-		// Part 1 - Top Right
-		t.computePart(1, top, right, topRight, 8, 0)
-		// Part 2 - Bottom Left
-		t.computePart(2, bottom, left, bottomLeft, 0, 8)
-		// Part 3 - Bottom Right
-		t.computePart(3, bottom, right, bottomRight, 8, 8)
-	}
+	// Part 0 - Top Left
+	t.computePart(0, top, left, topLeft, 0, 0)
+	// Part 1 - Top Right
+	t.computePart(1, top, right, topRight, 8, 0)
+	// Part 2 - Bottom Left
+	t.computePart(2, bottom, left, bottomLeft, 0, 8)
+	// Part 3 - Bottom Right
+	t.computePart(3, bottom, right, bottomRight, 8, 8)
 
 	ctx.Save()
 	ctx.Translate(x*tileSize, y*tileSize)
@@ -84,6 +78,16 @@ func (t *tileDynamic) Draw(ctx *html.Context, x, y int) {
 	ctx.DrawImageSection(img, t.OX+t.Parts[3].OX, t.OY+t.Parts[3].OY, 8, 8, 8, 8, 8, 8)
 
 	ctx.Restore()
+}
+
+func (t *tileDynamic) Connects(ti Tile) bool {
+	if t.IsSolid() {
+		return ti.IsSolid()
+	}
+	if dy, ok := ti.(*tileDynamic); ok {
+		return dy.OX == t.OX && dy.OY == t.OY
+	}
+	return !ti.IsSolid()
 }
 
 func (t *tileDynamic) computePart(part int, top, left, topLeft bool, ox, oy int) {
@@ -112,4 +116,4 @@ func (t *tileDynamic) computePart(part int, top, left, topLeft bool, ox, oy int)
 	t.Parts[part].OY += oy
 }
 
-func (*tileDynamic) IsSolid() bool { return true }
+func (t *tileDynamic) IsSolid() bool { return t.Solid }

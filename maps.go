@@ -1,71 +1,13 @@
 package main
 
-var Levels = []*Map{
-	// Test Level
-	NewMap(`
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|                                         B
-|                                         B
-|                                         B    BBBBBBBBB
-|                                         B    BBBBBBBBB
-|                                         B    BBBBBBBBB
-|                                         B    BBBBBBBBB
-|                                         B    BBBBBBBBB
-|                                         B    BBBBBBBBB
-|  S             ######                        BBBBBBBBB
-|               #######                        BBBBBBBBB
-|              ########                        BBBBBBBBB
-######################################################################################
-`, true),
-	NewMap(`
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+var Levels [20]*Map
 
-            #      #     ##
-            #      #     ##
-            #      #
-            ########     ##
-            #      #     ##
-            #      #     ##
-            #      #     ##
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-######################################################################################
-`, false),
-}
-
-func init() {
-	var last *Map
+func initMaps() {
+	Levels[0] = NewMap("level1")
 	for i, lvl := range Levels {
-		lvl.ID = i
-		if last != nil && last.Continues {
-			lvl.OffsetX = last.OffsetX + last.Width
+		if lvl == nil {
+			continue
 		}
-
-		last = lvl
+		lvl.ID = i
 	}
 }

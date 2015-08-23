@@ -56,6 +56,9 @@ func (c *Canvas) OnMouseDown(f func(button MouseButton, x, y int)) {
 			e.Get("clientY").Int()-c.Get("offsetTop").Int(),
 		)
 	})
+	c.Set("oncontextmenu", func(e *js.Object) bool {
+		return false
+	})
 }
 
 func (c *Canvas) OnMouseUp(f func(button MouseButton, x, y int)) {

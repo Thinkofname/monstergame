@@ -2,8 +2,6 @@ package main
 
 import (
 	"math"
-	"math/rand"
-	"time"
 
 	"github.com/thinkofdeath/monstergame/html"
 )
@@ -21,25 +19,21 @@ type cloudPart struct {
 	R    int
 }
 
-var (
-	cloudRand = rand.New(rand.NewSource(time.Now().Unix()))
-)
-
 func (c *cloud) init() {
 	ox := 0
-	pCount := cloudRand.Intn(3) + 2
+	pCount := globalRand.Intn(3) + 2
 	for i := 0; i < pCount; i++ {
 		cp := &cloudPart{
-			Y: cloudRand.Intn(16) - 8,
-			R: cloudRand.Intn(10) + 4,
+			Y: globalRand.Intn(16) - 8,
+			R: globalRand.Intn(10) + 4,
 		}
 		if i != 0 {
-			cp.X = ox + 7 + cloudRand.Intn(c.parts[i-1].R)
+			cp.X = ox + 7 + globalRand.Intn(c.parts[i-1].R)
 			ox += cp.X
 		}
 		c.parts = append(c.parts, cp)
 	}
-	c.Y = float64(cloudRand.Intn(250) + 20)
+	c.Y = float64(globalRand.Intn(250) + 20)
 }
 
 func init() {
@@ -47,11 +41,13 @@ func init() {
 		c := &cloud{}
 		c.init()
 
-		c.X = float64(cloudRand.Intn(800))
-		c.Speed = cloudRand.Float64()*0.4 + 0.2
+		c.X = float64(globalRand.Intn(800))
+		c.Speed = globalRand.Float64()*0.4 + 0.2
 		clouds = append(clouds, c)
 	}
 }
+
+var moonPosition = math.Pi
 
 func drawBackground(ctx *html.Context, delta float64) {
 	ctx.FillStyle = html.NewRGBColor(0, 19, 41)
@@ -61,8 +57,12 @@ func drawBackground(ctx *html.Context, delta float64) {
 	ctx.ShadowBlur = 50
 	ctx.ShadowColor = html.NewRGBColor(220, 220, 220)
 	ctx.FillStyle = html.NewRGBColor(255, 255, 255)
-	ctx.Arc(600, 100, 50, 0, math.Pi*2, false)
+	ctx.Arc(
+		400+int(450*math.Cos(moonPosition)),
+		300+int(200*math.Sin(moonPosition)),
+		50, 0, math.Pi*2, false)
 	ctx.Fill()
+	moonPosition += delta * 0.001
 	ctx.ShadowBlur = 0
 
 	for i := 0; i < len(clouds); i++ {
@@ -75,8 +75,8 @@ func drawBackground(ctx *html.Context, delta float64) {
 			ctx.Arc(p.X, p.Y, p.R, 0, math.Pi*2, false)
 			ctx.ClosePath()
 		}
-		ctx.Restore()
 		ctx.Fill()
+		ctx.Restore()
 		c.X += c.Speed
 		if c.X > 820 {
 			c.parts = c.parts[:0]

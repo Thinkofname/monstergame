@@ -6,6 +6,7 @@ var (
 	Images = map[string]*html.Image{
 		"tiles":  nil,
 		"player": nil,
+		"level1": nil,
 	}
 	loadedImages = 0
 )

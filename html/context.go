@@ -186,8 +186,8 @@ func (c *Context) GetImageData(sx, sy, sw, sh int) *ImageData {
 	}
 }
 
-func (c *Context) PutImageData(imageData ImageData, dx, dy int) {
-	c.Call("putImageData", dx, dy)
+func (c *Context) PutImageData(imageData *ImageData, dx, dy int) {
+	c.Call("putImageData", imageData, dx, dy)
 }
 
 func (c *Context) Save() {
@@ -203,6 +203,14 @@ type ImageData struct {
 	Width  int    `js:"width"`
 	Height int    `js:"height"`
 	Data   []byte `js:"data"`
+}
+
+func (id *ImageData) DataIndex(i int) byte {
+	return byte(id.Object.Get("data").Index(i).Int())
+}
+
+func (id *ImageData) SetDataIndex(i int, v byte) {
+	id.Object.Get("data").SetIndex(i, int(v))
 }
 
 type CanvasPattern struct {

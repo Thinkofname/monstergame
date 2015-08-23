@@ -1,6 +1,10 @@
 package main
 
-import "github.com/thinkofdeath/monstergame/html"
+import (
+	"math"
+
+	"github.com/thinkofdeath/monstergame/html"
+)
 
 var (
 	entities    []Entity
@@ -36,6 +40,38 @@ func RemoveEntity(e Entity) {
 			return
 		}
 	}
+}
+
+func CheckCollision(pb *box, dx, dy float64) (col bool, nx, ny float64) {
+	for x := int(math.Floor(pb.x/tileSize) - 1); x <= int(math.Ceil((pb.x+pb.w)/tileSize)+1); x++ {
+		for y := int(math.Floor(pb.y/tileSize) - 1); y <= int(math.Ceil((pb.y+pb.h)/tileSize)+1); y++ {
+			t := GetTile(x, y)
+			if t.IsSolid() {
+				b := &box{
+					x: float64(x) * tileSize,
+					y: float64(y) * tileSize,
+					w: tileSize, h: tileSize,
+				}
+				if b.collides(pb) {
+					col = true
+					if dx < 0 {
+						nx = b.x + b.w + 0.001
+					} else if dx > 0 {
+						nx = b.x - pb.w - 0.001
+					}
+					if dy < 0 {
+						ny = b.y + b.h + 0.001
+					} else if dy > 0 {
+						ny = b.y - pb.h - 0.001
+					}
+					nx /= tileSize
+					ny /= tileSize
+					return
+				}
+			}
+		}
+	}
+	return
 }
 
 type box struct {
